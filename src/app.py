@@ -1,27 +1,14 @@
 from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel, Field
+from src.models import Item
+from src.commons.serializers import item_serializer
 from bson import ObjectId
 from typing import List
 from src.database import collection
 
+
+
+
 app = FastAPI()
-
-# Define the data model
-class Item(BaseModel):
-    id: str = Field(default=None, alias="_id")
-    name: str
-    description: str
-    price: float
-
-# Helper function to convert MongoDB document (which uses ObjectId) to a Python dict
-def item_serializer(item) -> dict:
-    return {
-        "_id": str(item["_id"]),
-        "name": item["name"],
-        "description": item["description"],
-        "price": item["price"]
-    }
-
 
 
 @app.get("/")
