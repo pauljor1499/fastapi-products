@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 from bson import ObjectId
 from typing import List
-from src.database import collection  # Import the collection from the database.py
+from src.database import collection
 
 app = FastAPI()
 
@@ -28,7 +28,7 @@ def item_serializer(item) -> dict:
 def read_root():
     return {"message": "Welcome to Paul Jor API"}
 
-# Create an item (POST)
+
 @app.post("/items/", response_model=Item, status_code=status.HTTP_201_CREATED)
 def create_item(item: Item):
     result = collection.insert_one(item.dict())
@@ -36,14 +36,12 @@ def create_item(item: Item):
     return item_serializer(new_item)
 
 
-# Read all items (GET)
 @app.get("/items/", response_model=List[Item], status_code=status.HTTP_200_OK)
 def get_items():
     items = list(collection.find())
     return [item_serializer(item) for item in items]
 
 
-# Read a single item by ID (GET)
 @app.get("/items/{item_id}", response_model=Item)
 def get_item(item_id: str):
     item = collection.find_one({"_id": ObjectId(item_id)})
@@ -52,7 +50,6 @@ def get_item(item_id: str):
     return item_serializer(item)
 
 
-# Update an item by ID (PUT)
 @app.put("/items/{item_id}", response_model=Item)
 def update_item(item_id: str, updated_item: Item):
     result = collection.update_one({"_id": ObjectId(item_id)}, {"$set": updated_item.dict()})
@@ -62,7 +59,6 @@ def update_item(item_id: str, updated_item: Item):
     return item_serializer(item)
 
 
-# Delete an item by ID (DELETE)
 @app.delete("/items/{item_id}")
 def delete_item(item_id: str):
     result = collection.delete_one({"_id": ObjectId(item_id)})
