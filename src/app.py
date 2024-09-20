@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, status
-from src.models import Item
+from src.models import Item, ItemCreate
 from src.commons.serializers import item_serializer
 from bson import ObjectId
 from typing import List
@@ -16,8 +16,8 @@ def read_root():
     return {"message": "Welcome to Paul Jor API"}
 
 
-@app.post("/items/", response_model=Item, status_code=status.HTTP_201_CREATED)
-def create_item(item: Item):
+@app.post("/items/", response_model=ItemCreate, status_code=status.HTTP_201_CREATED)
+def create_item(item: ItemCreate):
     result = collection.insert_one(item.dict())
     new_item = collection.find_one({"_id": result.inserted_id})
     return item_serializer(new_item)
