@@ -1,9 +1,10 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Query
 from src.models import Item, ItemCreate
 from src.commons.serializers import item_serializer
 from bson import ObjectId
 from typing import List
 from src.database import collection
+from typing import List, Optional
 
 
 
@@ -16,16 +17,29 @@ def read_root():
     return {"message": "Welcome to Paul Jor API"}
 
 
-@app.post("/items/", response_model=ItemCreate, status_code=status.HTTP_201_CREATED)
+@app.post("/items", response_model=ItemCreate, status_code=status.HTTP_201_CREATED)
 def create_item(item: ItemCreate):
     result = collection.insert_one(item.dict())
     new_item = collection.find_one({"_id": result.inserted_id})
     return item_serializer(new_item)
 
 
-@app.get("/items/", response_model=List[Item], status_code=status.HTTP_200_OK)
-def get_items():
-    items = list(collection.find())
+# @app.get("/items/", response_model=List[Item], status_code=status.HTTP_200_OK)
+# def get_items():
+#     items = list(collection.find())
+#     return [item_serializer(item) for item in items]
+
+
+@app.get("/items", response_model=List[Item], status_code=status.HTTP_200_OK)
+def get_items_by_price(price: Optional[float] = Query(None)):
+    pipeline = []
+    if price is not None:
+        pipeline.append({
+            "$match": {"price": price}
+        })
+    items = list(collection.aggregate(pipeline))
+    if not items:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No items found")
     return [item_serializer(item) for item in items]
 
 
